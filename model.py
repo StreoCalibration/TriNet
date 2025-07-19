@@ -80,8 +80,23 @@ class TriNet(nn.Module):
         x1_2 = self.conv1_2(torch.cat([x1_0, x1_1, self.up(x2_1)], 1))
         x0_3 = self.conv0_3(torch.cat([x0_0, x0_1, x0_2, self.up(x1_2)], 1))
 
-        # 두 개의 디코더로 최종 특징 맵 전달
-        output_denoised = self.decoder1(x0_3)
-        output_unwrap = self.decoder2(x0_3)
+        # 최종 디코더 입력을 위해 모든 x0_i 특징 맵을 결합합니다.
+        # 채널 수: 64 + 64 + 64 + 64 = 256
+        final_features = torch.cat([x0_0, x0_1, x0_2, x0_3], 1)
 
-        return output_denoised, output_unwrap
+        # 최종 출력 계산
+        final_denoised = self.decoder1(final_features)
+        final_unwrap = self.decoder2(final_features)
+
+        # Deep Supervision이 활성화된 경우, 중간 출력들을 함께 반환
+        if self.deep_supervision:
+            # 각 중간 단계의 출력을 계산 (예시: 여기서는 생략, 필요시 추가 구현)
+            # output1 = self.final1(x0_1)
+            # output2 = self.final2(x0_2)
+            # output3 = self.final3(x0_3)
+            # return [final_denoised, output3, output2, output1], [final_unwrap, ...]
+            # 현재는 최종 출력만 반환하는 구조이므로, deep_supervision을 위한
+            # 추가적인 출력 레이어가 필요합니다. 아래는 최종 출력만 반환하는 현재 구조입니다.
+            pass # 향후 확장을 위해 남겨둠
+
+        return final_denoised, final_unwrap

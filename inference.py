@@ -2,7 +2,7 @@ import torch
 import cv2
 import numpy as np
 from torchvision import transforms
-# from model import TriNet
+from model import TriNet
 
 # --- 1. 모델 및 데이터 준비 ---
 device = torch.device('cpu') # 추론은 CPU에서도 가능
@@ -42,5 +42,11 @@ phi_denoised_rad = (phi_denoised_norm.squeeze().numpy() * 2 * np.pi) - np.pi
 psi_final = phi_denoised_rad + (2 * np.pi * k_pred)
 
 # 결과 저장 또는 시각화
+# FR-03 요구사항을 위해, 노이즈 제거된 중간 결과는 시각화용으로 저장합니다.
 cv2.imwrite('denoised_phase.png', phi_denoised)
-# psi_final은 matplotlib 등으로 시각화
+
+# FR-03 요구사항: 최종 결과물인 펼쳐진 절대 위상 맵은 32-bit Float 형식으로 저장합니다.
+# TIFF 형식은 float 데이터를 지원하므로 정밀도 손실 없이 저장이 가능합니다.
+cv2.imwrite('unwrapped_phase_float32.tiff', psi_final.astype(np.float32))
+print("Inference complete. Denoised preview saved to 'denoised_phase.png'.")
+print("Final 32-bit float unwrapped phase map saved to 'unwrapped_phase_float32.tiff'.")
